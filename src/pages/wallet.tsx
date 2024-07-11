@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemButton,
+  IconButton,
+} from '@mui/material';
 import { Keypair, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
-import Cookies from 'js-cookie';
+import { useRouter } from 'next/router';
+import { ContentCopy } from '@mui/icons-material';
 
 interface WalletInfo {
   publicKey: string;
@@ -11,12 +21,22 @@ interface WalletInfo {
 
 const Wallet = () => {
   const [wallets, setWallets] = useState<WalletInfo[]>([]);
+  const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
   const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+  const router = useRouter();
 
   useEffect(() => {
-    const savedWallets = Cookies.get('wallets');
+    const savedWallets = localStorage.getItem('wallets');
+    const savedSelectedWallet = localStorage.getItem('selectedWallet');
     if (savedWallets) {
       const parsedWallets: WalletInfo[] = JSON.parse(savedWallets);
+      setWallets(parsedWallets);
+      if (parsedWallets.length > 0) {
+        const wallet = parsedWallets?.find(
+          (w) => w.publicKey === savedSelectedWallet
+        );
+        setSelectedWallet(wallet || parsedWallets[0]);
+      }
       updateWalletBalances(parsedWallets);
     }
   }, []);
@@ -31,7 +51,13 @@ const Wallet = () => {
       })
     );
     setWallets(updatedWallets);
-    Cookies.set('wallets', JSON.stringify(updatedWallets));
+    if (selectedWallet) {
+      const updatedWallet =
+        updatedWallets.find((w) => w.publicKey === selectedWallet.publicKey) ||
+        null;
+      setSelectedWallet(updatedWallet);
+    }
+    localStorage.setItem('wallets', JSON.stringify(updatedWallets));
   };
 
   const airdropSol = async (publicKey: string) => {
@@ -65,7 +91,25 @@ const Wallet = () => {
 
     const updatedWallets = [...wallets, newWallet];
     setWallets(updatedWallets);
-    Cookies.set('wallets', JSON.stringify(updatedWallets));
+    setSelectedWallet(newWallet);
+    localStorage.setItem('wallets', JSON.stringify(updatedWallets));
+    localStorage.setItem('selectedWallet', newWallet.publicKey);
+  };
+
+  const handleSelectWallet = (wallet: WalletInfo) => {
+    setSelectedWallet(wallet);
+    localStorage.setItem('selectedWallet', wallet.publicKey);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        console.log('Copied to clipboard successfully!');
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+      }
+    );
   };
 
   return (
@@ -81,15 +125,82 @@ const Wallet = () => {
         <Button variant='contained' onClick={createWallet}>
           Create Wallet
         </Button>
+        {selectedWallet && (
+          <>
+            <Typography variant='h6'>
+              Balance: {selectedWallet.balance / 1e9} SOL
+            </Typography>
+            <Button
+              variant='contained'
+              onClick={() =>
+                router.push(
+                  `/transactions?publicKey=${selectedWallet.publicKey}`
+                )
+              }
+            >
+              CREATE TRANSACTION
+            </Button>
+          </>
+        )}
       </Box>
-      {wallets.reverse().map((wallet, index) => (
-        <Box key={index} sx={{ marginBottom: 2 }}>
-          <Typography variant='body1'>Address: {wallet.publicKey}</Typography>
-          <Typography variant='body1'>
-            Balance: {wallet.balance / 1e9} SOL
+      <List>
+        {wallets.map((wallet, index) => (
+          <ListItem key={index} disablePadding>
+            <ListItemButton
+              selected={
+                wallet.publicKey ===
+                (selectedWallet && selectedWallet.publicKey)
+              }
+              onClick={() => handleSelectWallet(wallet)}
+              sx={{
+                borderRadius: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+              }}
+            >
+              <ListItemText
+                sx={{ wordBreak: 'break-all' }}
+                primary={`Address: ${wallet.publicKey}`}
+              />
+              <IconButton
+                onClick={() =>
+                  copyToClipboard(selectedWallet?.publicKey.toString() || '')
+                }
+              >
+                <ContentCopy />
+              </IconButton>
+              <Typography variant='body1'>
+                Balance: {wallet.balance / 1e9} SOL
+              </Typography>
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      {/* Warning danger!!! */}
+      {selectedWallet && (
+        <>
+          <Typography
+            variant='body2'
+            sx={{
+              backgroundColor: '#A6BDD7',
+              padding: 2,
+              border: '1px solid',
+              borderRadius: 1,
+              wordBreak: 'break-all',
+            }}
+          >
+            Private Key: {selectedWallet?.secretKey.toString()}
+            <IconButton
+              onClick={() =>
+                copyToClipboard(selectedWallet?.secretKey.toString() || '')
+              }
+            >
+              <ContentCopy />
+            </IconButton>
           </Typography>
-        </Box>
-      ))}
+        </>
+      )}
     </Box>
   );
 };
