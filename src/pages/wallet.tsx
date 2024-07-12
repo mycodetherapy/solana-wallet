@@ -15,12 +15,7 @@ import { Keypair, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 import { useRouter } from 'next/router';
 import { ContentCopy } from '@mui/icons-material';
 import ErrorSnackbar from '@/SnackBars/ErrorSnackbar';
-
-interface WalletInfo {
-  publicKey: string;
-  secretKey: number[];
-  balance: number;
-}
+import { WalletInfo } from '@/interfaces';
 
 const Wallet = () => {
   const [wallets, setWallets] = useState<WalletInfo[]>([]);

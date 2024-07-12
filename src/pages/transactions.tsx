@@ -1,35 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import {
-  Backdrop,
   Box,
   Button,
   CircularProgress,
   TextField,
   Typography,
+  Backdrop,
 } from '@mui/material';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import {
-  Keypair,
   Connection,
+  PublicKey,
+  Keypair,
   clusterApiUrl,
   Transaction,
-  SystemProgram,
   sendAndConfirmTransaction,
-  PublicKey,
+  SystemProgram,
 } from '@solana/web3.js';
-import { useRouter } from 'next/router';
-import ErrorSnackbar from '@/SnackBars/ErrorSnackbar';
-
-interface WalletInfo {
-  publicKey: string;
-  secretKey: number[];
-  balance: number;
-}
+import ErrorSnackbar from '../SnackBars/ErrorSnackbar';
+import { WalletInfo } from '@/interfaces';
 
 const Transactions = () => {
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [allWallets, setAllWallets] = useState<WalletInfo[]>([]);
-  const [amount, setAmount] = useState<string>('');
-  const [recipient, setRecipient] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
@@ -76,7 +71,7 @@ const Transactions = () => {
     }
   };
 
-  const sendTransaction = async () => {
+  const sendTransaction = async (amount: string, recipient: string) => {
     if (!wallet) return;
     setLoading(true);
     const secretKey = Uint8Array.from(wallet.secretKey);
@@ -97,6 +92,29 @@ const Transactions = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const validationSchema = Yup.object().shape({
+    amount: Yup.number()
+      .required('Amount is required')
+      .positive('Amount must be positive')
+      .max(wallet ? wallet.balance / 1e9 : 0, 'Amount exceeds wallet balance'),
+    recipient: Yup.string()
+      .required('Recipient address is required')
+      .notOneOf(
+        [wallet ? wallet.publicKey : ''],
+        'Cannot send to the same wallet'
+      ),
+  });
+
+  const ErrorRender = (errName: string) => {
+    return (
+      <ErrorMessage name={errName}>
+        {(msg) => (
+          <Typography sx={{ color: 'red', fontSize: 12 }}>{msg}</Typography>
+        )}
+      </ErrorMessage>
+    );
   };
 
   return (
@@ -123,25 +141,40 @@ const Transactions = () => {
             Balance: {wallet ? wallet.balance / 1e9 : '0'} SOL
           </Typography>
         </Box>
-        <Box sx={{ marginBottom: 2, maxWidth: '50%' }}>
-          <TextField
-            label='Amount (SOL)'
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            fullWidth
-          />
-        </Box>
-        <Box sx={{ marginBottom: 2 }}>
-          <TextField
-            label='Recipient Address'
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            fullWidth
-          />
-        </Box>
-        <Button variant='contained' onClick={sendTransaction}>
-          Send
-        </Button>
+        <Formik
+          initialValues={{ amount: '', recipient: '' }}
+          validationSchema={validationSchema}
+          onSubmit={(values, { setSubmitting }) => {
+            sendTransaction(values.amount, values.recipient);
+            setSubmitting(false);
+          }}
+        >
+          {({ isSubmitting }) => (
+            <Form>
+              <Box sx={{ marginBottom: 2, maxWidth: '50%' }}>
+                <Field
+                  as={TextField}
+                  label='Amount (SOL)'
+                  name='amount'
+                  fullWidth
+                  helperText={ErrorRender('amount')}
+                />
+              </Box>
+              <Box sx={{ marginBottom: 2 }}>
+                <Field
+                  as={TextField}
+                  label='Recipient Address'
+                  name='recipient'
+                  fullWidth
+                  helperText={ErrorRender('recipient')}
+                />
+              </Box>
+              <Button variant='contained' type='submit' disabled={isSubmitting}>
+                Send
+              </Button>
+            </Form>
+          )}
+        </Formik>
       </Box>
       <ErrorSnackbar errorMessage={error} clearError={setError} />
     </>
