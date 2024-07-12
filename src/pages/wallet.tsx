@@ -14,14 +14,17 @@ import {
 import { Keypair, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 import { useRouter } from 'next/router';
 import { ContentCopy } from '@mui/icons-material';
-import ErrorSnackbar from '@/SnackBars/ErrorSnackbar';
+import ErrorSnackbar from '@/snackBars/ErrorSnackbar';
 import { WalletInfo } from '@/interfaces';
+import { SALES_CONTENT, STORE } from '@/constants';
+import { DialogModal } from '@/modals/dialogModal';
 
 const Wallet = () => {
   const [wallets, setWallets] = useState<WalletInfo[]>([]);
   const [selectedWallet, setSelectedWallet] = useState<WalletInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [openSalesModal, setOpenSalesModal] = useState<boolean>(false);
   const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
   const router = useRouter();
 
@@ -96,6 +99,7 @@ const Wallet = () => {
   };
 
   const createWallet = async () => {
+    if (wallets.length >= 2) return setOpenSalesModal(!openSalesModal);
     const newKeypair = Keypair.generate();
     const balance = await airdropSol(newKeypair.publicKey.toBase58());
 
@@ -104,8 +108,8 @@ const Wallet = () => {
       secretKey: Array.from(newKeypair.secretKey),
       balance,
     };
-
     const updatedWallets = [...wallets, newWallet];
+
     setWallets(updatedWallets);
     setSelectedWallet(newWallet);
     localStorage.setItem('wallets', JSON.stringify(updatedWallets));
@@ -126,6 +130,14 @@ const Wallet = () => {
         console.error('Could not copy text: ', err);
       }
     );
+  };
+
+  const goToStore = () => {
+    window.open(STORE, '_blank');
+  };
+  const handleGoToStore = () => {
+    goToStore();
+    setOpenSalesModal(!openSalesModal);
   };
 
   return (
@@ -235,6 +247,14 @@ const Wallet = () => {
           </>
         )}
         <ErrorSnackbar errorMessage={error} clearError={setError} />
+        <DialogModal
+          open={openSalesModal}
+          acceptAction={handleGoToStore}
+          cancelAction={() => setOpenSalesModal(!openSalesModal)}
+          acceptTitle={'Hire'}
+          title={'Limit reached!'}
+          content={SALES_CONTENT}
+        />
       </Box>
     </>
   );

@@ -19,7 +19,7 @@ import {
   sendAndConfirmTransaction,
   SystemProgram,
 } from '@solana/web3.js';
-import ErrorSnackbar from '../SnackBars/ErrorSnackbar';
+import ErrorSnackbar from '../snackBars/ErrorSnackbar';
 import { WalletInfo } from '@/interfaces';
 
 const Transactions = () => {
