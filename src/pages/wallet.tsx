@@ -147,17 +147,15 @@ const Wallet = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 2,
+            flexDirection: 'column',
+            gap: 2,
           }}
         >
           <Button variant='contained' onClick={createWallet}>
-            Create Wallet
+            Create new wallet
           </Button>
           {selectedWallet && (
             <>
-              <Typography variant='h6'>
-                Balance: {selectedWallet.balance / 1e9} SOL
-              </Typography>
               <Button
                 variant='contained'
                 onClick={() =>
@@ -166,13 +164,16 @@ const Wallet = () => {
                   )
                 }
               >
-                CREATE TRANSACTION
+                Create transaction
               </Button>
+              <Typography variant='h6'>
+                Balance: {selectedWallet.balance / 1e9} SOL
+              </Typography>
             </>
           )}
         </Box>
         <List>
-          {wallets.map((wallet, index) => (
+          {wallets?.map((wallet, index) => (
             <ListItem key={index} disablePadding>
               <ListItemButton
                 selected={
@@ -181,23 +182,25 @@ const Wallet = () => {
                 }
                 onClick={() => handleSelectWallet(wallet)}
                 sx={{
-                  borderRadius: 1,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'flex-start',
+                  borderRadius: 1,
                 }}
               >
                 <ListItemText
-                  sx={{ wordBreak: 'break-all' }}
+                  sx={{
+                    wordBreak: 'break-all',
+                  }}
                   primary={
                     <Typography>
                       {`Address: ${wallet.publicKey}`}
                       <IconButton
-                        onClick={() =>
-                          copyToClipboard(
-                            selectedWallet?.publicKey.toString() || ''
-                          )
-                        }
+                        sx={{ marginLeft: 2 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(wallet.publicKey.toString() || '');
+                        }}
                       >
                         <ContentCopy />
                       </IconButton>
@@ -226,6 +229,7 @@ const Wallet = () => {
             >
               Private Key: {selectedWallet?.secretKey.toString()}
               <IconButton
+                sx={{ marginLeft: 2 }}
                 onClick={() =>
                   copyToClipboard(selectedWallet?.secretKey.toString() || '')
                 }

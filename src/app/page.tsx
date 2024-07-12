@@ -4,14 +4,14 @@ import Link from 'next/link';
 
 const Home = () => {
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: 2 }}>
       <Link href='/wallet' passHref>
-        <Button variant='contained' fullWidth>
-          Wallet
+        <Button variant='contained' fullWidth size='large'>
+          Wallets
         </Button>
       </Link>
       <Link href='/transactions' passHref>
-        <Button variant='contained' fullWidth>
+        <Button variant='contained' fullWidth size='large'>
           Transactions
         </Button>
       </Link>

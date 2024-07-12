@@ -123,7 +123,7 @@ const Transactions = () => {
             Balance: {wallet ? wallet.balance / 1e9 : '0'} SOL
           </Typography>
         </Box>
-        <Box sx={{ marginBottom: 2 }}>
+        <Box sx={{ marginBottom: 2, maxWidth: '50%' }}>
           <TextField
             label='Amount (SOL)'
             value={amount}
