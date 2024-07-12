@@ -27,6 +27,7 @@ interface WalletInfo {
 
 const Transactions = () => {
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
+  const [allWallets, setAllWallets] = useState<WalletInfo[]>([]);
   const [amount, setAmount] = useState<string>('');
   const [recipient, setRecipient] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -38,13 +39,13 @@ const Transactions = () => {
     const savedWallets = localStorage.getItem('wallets');
     if (savedWallets) {
       const parsedWallets: WalletInfo[] = JSON.parse(savedWallets);
-      const selectedWallet = parsedWallets.find(
-        (w) => w.publicKey === (router.query.publicKey as string)
-      );
-      if (selectedWallet) {
-        setWallet(selectedWallet);
-      } else if (parsedWallets.length > 0) {
-        setWallet(parsedWallets[0]);
+      setAllWallets(parsedWallets);
+
+      if (parsedWallets.length > 0) {
+        const selectedWallet = parsedWallets.find(
+          (w) => w.publicKey === (router.query.publicKey as string)
+        );
+        setWallet(selectedWallet || parsedWallets[0]);
       }
       updateWalletBalances(parsedWallets);
     }
@@ -61,6 +62,7 @@ const Transactions = () => {
           return { ...wallet, balance };
         })
       );
+      setAllWallets(updatedWallets);
       if (wallet) {
         const updatedWallet =
           updatedWallets.find((w) => w.publicKey === wallet.publicKey) || null;
@@ -89,7 +91,7 @@ const Transactions = () => {
     );
     try {
       await sendAndConfirmTransaction(connection, transaction, [keypair]);
-      await updateWalletBalances([wallet]);
+      await updateWalletBalances(allWallets);
     } catch (e) {
       if (e instanceof Error) setError(e.message);
     } finally {

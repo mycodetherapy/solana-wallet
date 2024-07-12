@@ -72,7 +72,6 @@ const Wallet = () => {
       setLoading(false);
     }
   };
-  console.log('error', error);
 
   const airdropSol = async (publicKey: string) => {
     setLoading(true);
@@ -190,15 +189,21 @@ const Wallet = () => {
               >
                 <ListItemText
                   sx={{ wordBreak: 'break-all' }}
-                  primary={`Address: ${wallet.publicKey}`}
-                />
-                <IconButton
-                  onClick={() =>
-                    copyToClipboard(selectedWallet?.publicKey.toString() || '')
+                  primary={
+                    <Typography>
+                      {`Address: ${wallet.publicKey}`}
+                      <IconButton
+                        onClick={() =>
+                          copyToClipboard(
+                            selectedWallet?.publicKey.toString() || ''
+                          )
+                        }
+                      >
+                        <ContentCopy />
+                      </IconButton>
+                    </Typography>
                   }
-                >
-                  <ContentCopy />
-                </IconButton>
+                />
                 <Typography variant='body1'>
                   Balance: {wallet.balance / 1e9} SOL
                 </Typography>
