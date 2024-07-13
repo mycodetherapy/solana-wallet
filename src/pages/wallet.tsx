@@ -14,7 +14,7 @@ import {
 import { Keypair, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 import { useRouter } from 'next/router';
 import { ContentCopy } from '@mui/icons-material';
-import ErrorSnackbar from '@/snackBars/ErrorSnackbar';
+import ErrorSnackbar from '@/snackBars/errorSnackbar';
 import { WalletInfo } from '@/interfaces';
 import { SALES_CONTENT, STORE } from '@/constants';
 import { DialogModal } from '@/modals/dialogModal';
@@ -120,17 +120,6 @@ const Wallet = () => {
     setSelectedWallet(wallet);
     localStorage.setItem('selectedWallet', wallet.publicKey);
   };
-
-  // const copyToClipboard = (text: string) => {
-  //   navigator.clipboard.writeText(text).then(
-  //     () => {
-  //       console.log('Copied to clipboard successfully!');
-  //     },
-  //     (err) => {
-  //       console.error('Could not copy text: ', err);
-  //     }
-  //   );
-  // };
 
   const copyToClipboard = (text: string) => {
     if (!navigator.clipboard) {

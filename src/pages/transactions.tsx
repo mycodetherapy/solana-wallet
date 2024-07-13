@@ -19,7 +19,7 @@ import {
   sendAndConfirmTransaction,
   SystemProgram,
 } from '@solana/web3.js';
-import ErrorSnackbar from '../snackBars/ErrorSnackbar';
+import ErrorSnackbar from '@/snackBars/errorSnackbar';
 import { WalletInfo } from '@/interfaces';
 
 const Transactions = () => {
@@ -169,7 +169,11 @@ const Transactions = () => {
                   helperText={ErrorRender('recipient')}
                 />
               </Box>
-              <Button variant='contained' type='submit' disabled={isSubmitting}>
+              <Button
+                variant='contained'
+                type='submit'
+                disabled={isSubmitting || !wallet}
+              >
                 Send
               </Button>
             </Form>
