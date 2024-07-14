@@ -7,6 +7,7 @@
 1. Clone the repository from the main branch to your device. To do this, type `git clone <repository address>` in the terminal.
 2. In the terminal, go to the project folder and install the dependencies `npm install`.
 3. Start the project with the `npm run dev` command.
+4. Go to http://localhost:3000/ in your browser.
 
 ### If you want to run the app on a mobile device:
 
